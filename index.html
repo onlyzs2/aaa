@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz de Palavras e Significados</title>
+  <style>
+    :root{
+      --bg: #0f172a;
+      --panel: #111827;
+      --accent: #22d3ee;
+      --accent-2: #a78bfa;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --correct: #16a34a;
+      --wrong: #ef4444;
+      --btn: #1f2937;
+      --btn-hov: #334155;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(1200px 800px at 10% 0%, #111827 0%, var(--bg) 60%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+      line-height: 1.5;
+    }
+    a { color: inherit; }
+
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    header {
+      padding: 20px clamp(16px, 4vw, 28px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #1f2937;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      font-weight: 700; letter-spacing: 0.3px;
+    }
+    .brand .logo {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: conic-gradient(from 180deg at 50% 50%, var(--accent), var(--accent-2), var(--accent));
+      filter: saturate(1.3);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.06) inset, 0 8px 24px rgba(167,139,250,0.25);
+    }
+
+    main {
+      display: grid;
+      place-items: center;
+      padding: clamp(16px, 4vw, 28px);
+    }
+
+    .card {
+      width: min(880px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid #1f2937;
+      border-radius: 18px;
+      padding: clamp(16px, 4vw, 28px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    .controls {
+      display: grid; gap: 10px;
+      grid-template-columns: 1fr;
+      margin-bottom: 16px;
+    }
+    @media (min-width: 720px){
+      .controls {
+        grid-template-columns: 1fr auto auto;
+        align-items: end;
+      }
+    }
+
+    label {
+      font-size: 0.95rem;
+      color: var(--muted);
+      display: block; margin-bottom: 6px;
+    }
+    .select, .search, .button {
+      width: 100%;
+      appearance: none;
+      background: var(--btn);
+      color: var(--text);
+      border: 1px solid #283445;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s, background .2s, transform .06s ease;
+    }
+    .select:focus, .search:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(34,211,238,.15);
+    }
+    .button {
+      cursor: pointer; font-weight: 600;
+      background: linear-gradient(180deg, var(--btn), #283142);
+    }
+    .button:hover { background: var(--btn-hov); }
+    .button:active { transform: translateY(1px); }
+    .button.secondary {
+      background: linear-gradient(180deg, #0b1220, #121a2a);
+      border-color: #2a3750;
+    }
+
+    .question {
+      margin-top: 8px;
+      padding: clamp(12px, 2vw, 18px);
+      border-radius: 14px;
+      background: rgba(17, 24, 39, 0.6);
+      border: 1px solid #1f2937;
+    }
+    .q-title {
+      display: flex; align-items: center; gap: 10px;
+      font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+      font-weight: 700;
+    }
+    .q-title .pill {
+      background: linear-gradient(180deg, rgba(34,211,238,.2), rgba(167,139,250,.2));
+      padding: 4px 10px; border-radius: 999px;
+      font-size: .8rem; color: #c7d2fe;
+      border: 1px solid rgba(167,139,250,.35);
+    }
+    .definition {
+      margin-top: 10px;
+      color: #e9eef8;
+      font-size: clamp(1rem, 2.5vw, 1.1rem);
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .option {
+      display: flex; gap: 12px; align-items: center;
+      background: #0b1220;
+      border: 1px solid #243047;
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: transform .05s ease, border-color .2s, background .2s;
+      user-select: none;
+    }
+    .option:hover { background: #0e1728; }
+    .option:active { transform: translateY(1px); }
+    .opt-bullet {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid #34465f; flex: 0 0 auto;
+      display: grid; place-items: center;
+      font-weight: 700; color: #94a3b8; font-size: .85rem;
+    }
+    .option.correct {
+      border-color: rgba(22,163,74,.8);
+      background: rgba(22,163,74,.15);
+    }
+    .option.wrong {
+      border-color: rgba(239,68,68,.8);
+      background: rgba(239,68,68,.12);
+    }
+    .reveal {
+      margin-top: 8px;
+      color: #cbd5e1;
+      font-size: .95rem;
+    }
+
+    .footer {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; margin-top: 16px; flex-wrap: wrap;
+    }
+    .score {
+      font-weight: 700; color: #c7d2fe;
+    }
+
+    footer {
+      padding: 18px clamp(16px, 4vw, 28px);
+      color: var(--muted);
+      border-top: 1px solid #1f2937;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 8px;
+      font-size: .9rem;
+    }
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      border: 1px solid #2b3a52; border-bottom-width: 3px;
+      padding: 0 6px; border-radius: 6px; margin: 0 2px;
+      background: #0c1525; color: #93c5fd;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>Quiz de Dicionário</div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="button secondary" id="aboutBtn" aria-label="Sobre">Sobre</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="card" role="region" aria-labelledby="titulo">
+        <div class="controls">
+          <div>
+            <label for="dificuldade">Dificuldade</label>
+            <select id="dificuldade" class="select">
+              <option value="facil">Fácil</option>
+              <option value="medio" selected>Médio</option>
+              <option value="dificil">Difícil</option>
+              <option value="misto">Misto</option>
+            </select>
+          </div>
+          <div>
+            <label for="numAlternativas">Alternativas</label>
+            <select id="numAlternativas" class="select">
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4" selected>4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="novaPergunta" class="button">Nova pergunta</button>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="q-title" id="titulo">
+            <span class="pill">Qual é a palavra?</span>
+          </div>
+          <div id="definicao" class="definition">
+            Clique em “Nova pergunta” para começar.
+          </div>
+          <div id="opcoes" class="options" role="list"></div>
+          <div id="revelacao" class="reveal" aria-live="polite"></div>
+
+          <div class="footer">
+            <div class="score" id="placar">Acertos: 0 | Tentativas: 0</div>
+            <div style="display:flex; gap:8px;">
+              <button id="pular" class="button secondary">Pular</button>
+              <button id="reiniciar" class="button secondary">Reiniciar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div>Pressione <span class="kbd">N</span> para nova pergunta e <span class="kbd">1-9</span> para responder rápido.</div>
+      <div>Conteúdo offline; sem necessidade de internet.</div>
+    </footer>
+  </div>
+
+  <script>
+    // Pequeno "dicionário" interno. Você pode adicionar/editar livremente.
+    // Cada item tem: palavra, definicao, dificuldade
+    const DICIONARIO = [
+      { palavra: "efêmero", definicao: "Que dura por pouco tempo; passageiro, transitório.", dificuldade: "medio" },
+      { palavra: "ubíquo", definicao: "Que está presente em todos os lugares ao mesmo tempo; onipresente.", dificuldade: "dificil" },
+      { palavra: "lúgubre", definicao: "Que causa tristeza profunda; fúnebre, sombrio.", dificuldade: "medio" },
+      { palavra: "parcimonioso", definicao: "Que age com parcimônia; econômico, moderado nos gastos.", dificuldade: "dificil" },
+      { palavra: "prolífico", definicao: "Que produz em abundância; fértil, fecundo.", dificuldade: "medio" },
+      { palavra: "inefável", definicao: "Que não pode ser expresso por palavras; indescritível.", dificuldade: "dificil" },
+      { palavra: "cândido", definicao: "Excessivamente ingênuo; puro, inocente.", dificuldade: "facil" },
+      { palavra: "ardil", definicao: "Estratagema para enganar; artifício, truque.", dificuldade: "medio" },
+      { palavra: "inócuo", definicao: "Que não causa dano; inofensivo.", dificuldade: "facil" },
+      { palavra: "frugal", definicao: "Que se contenta com pouco; simples e moderado.", dificuldade: "medio" },
+      { palavra: "verossímil", definicao: "Que parece verdadeiro; plausível.", dificuldade: "facil" },
+      { palavra: "apático", definicao: "Sem emoção ou interesse; indiferente.", dificuldade: "facil" },
+      { palavra: "labiríntico", definicao: "Complexo, cheio de voltas; semelhante a um labirinto.", dificuldade: "facil" },
+      { palavra: "perene", definicao: "Que dura muito tempo; contínuo, persistente.", dificuldade: "medio" },
+      { palavra: "tácito", definicao: "Que está implícito; não expresso diretamente.", dificuldade: "medio" },
+      { palavra: "tênue", definicao: "Fino, fraco, sutil.", dificuldade: "facil" },
+      { palavra: "oneroso", definicao: "Que acarreta custo elevado; pesado, caro.", dificuldade: "medio" },
+      { palavra: "moroso", definicao: "Lento; que demora além do normal.", dificuldade: "facil" },
+      { palavra: "indolente", definicao: "Pouco disposto a agir; preguiçoso.", dificuldade: "facil" },
+      { palavra: "prosaico", definicao: "Comum, sem poesia; trivial.", dificuldade: "medio" },
+      { palavra: "resiliente", definicao: "Capaz de se recuperar de dificuldades; elástico.", dificuldade: "facil" },
+      { palavra: "mitigar", definicao: "Tornar mais brando; aliviar, atenuar.", dificuldade: "facil" },
+      { palavra: "arroubo", definicao: "Arrebatamento intenso de emoção; êxtase.", dificuldade: "dificil" },
+      { palavra: "cônscio", definicao: "Que tem consciência; sabedor.", dificuldade: "medio" },
+      { palavra: "insólito", definicao: "Fora do comum; estranho, inusitado.", dificuldade: "medio" },
+      { palavra: "inepto", definicao: "Desajeitado; incompetente.", dificuldade: "facil" },
+      { palavra: "magnânimo", definicao: "Generoso, nobre de espírito; indulgente.", dificuldade: "dificil" },
+      { palavra: "sagaz", definicao: "Perspicaz, astuto; de bom discernimento.", dificuldade: "facil" },
+      { palavra: "capcioso", definicao: "Enganoso, feito para confundir.", dificuldade: "dificil" },
+      { palavra: "despiciendo", definicao: "Que é dispensável; desnecessário.", dificuldade: "dificil" },
+      { palavra: "lídimo", definicao: "Legítimo; autêntico, verdadeiro.", dificuldade: "dificil" },
+      { palavra: "acrônimo", definicao: "Palavra formada pelas iniciais de outras palavras.", dificuldade: "facil" },
+      { palavra: "pleonasma", definicao: "Redundância viciosa ou de ênfase na linguagem.", dificuldade: "medio" },
+      { palavra: "enaltecer", definicao: "Exaltar, elevar a consideração; elogiar.", dificuldade: "medio" },
+      { palavra: "empírico", definicao: "Baseado na experiência ou observação.", dificuldade: "facil" },
+      { palavra: "axioma", definicao: "Princípio evidente por si; proposição aceita sem demonstração.", dificuldade: "medio" },
+      { palavra: "dialético", definicao: "Relativo ao diálogo ou à arte de argumentar.", dificuldade: "medio" },
+      { palavra: "uberdade", definicao: "Grande fertilidade; abundância.", dificuldade: "dificil" },
+      { palavra: "cauterizar", definicao: "Queimar tecido vivo para estancar hemorragia ou destruir tecidos.", dificuldade: "dificil" },
+      { palavra: "esotérico", definicao: "Que é reservado a poucos; obscuro, hermético.", dificuldade: "medio" },
+      { palavra: "paradoxo", definicao: "Afirmação que parece contraditória, mas pode ser verdadeira.", dificuldade: "facil" }
+    ];
+
+    // Estado do jogo
+    const state = {
+      score: 0,
+      tries: 0,
+      current: null, // { correctWord, definition, options }
+      answered: false
+    };
+
+    // Utilidades
+    function randomInt(max){ return Math.floor(Math.random() * max); }
+    function shuffle(arr){
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+    function pickByDifficulty(dic, dif){
+      if (dif === "misto") return dic;
+      return dic.filter(x => x.dificuldade === dif);
+    }
+
+    // Geração de pergunta
+    function novaPergunta(){
+      const dif = document.getElementById("dificuldade").value;
+      const nOpts = parseInt(document.getElementById("numAlternativas").value, 10);
+
+      const pool = pickByDifficulty(DICIONARIO, dif);
+      if (pool.length < nOpts) {
+        alert("Poucas palavras nessa dificuldade para o número de alternativas escolhido.");
+        return;
+      }
+
+      // Escolhe a palavra correta
+      const correta = pool[randomInt(pool.length)];
+      // Gera alternativas únicas
+      const outras = shuffle(DICIONARIO.filter(w => w.palavra !== correta.palavra)).slice(0, nOpts - 1);
+      const opcoes = shuffle([correta.palavra, ...outras.map(o => o.palavra)]);
+
+      state.current = {
+        correctWord: correta.palavra,
+        definition: correta.definicao,
+        options: opcoes
+      };
+      state.answered = false;
+
+      renderPergunta();
+    }
+
+    // Renderização
+    function renderPergunta(){
+      const def = document.getElementById("definicao");
+      const opts = document.getElementById("opcoes");
+      const rev = document.getElementById("revelacao");
+
+      def.textContent = state.current ? state.current.definition : "Clique em “Nova pergunta” para começar.";
+      opts.innerHTML = "";
+      rev.textContent = "";
+
+      if (!state.current) return;
+
+      state.current.options.forEach((texto, idx) => {
+        const el = document.createElement("button");
+        el.className = "option";
+        el.setAttribute("role", "listitem");
+        el.innerHTML = `
+          <div class="opt-bullet">${idx+1}</div>
+          <div>${texto}</div>
+        `;
+        el.addEventListener("click", () => responder(texto, el));
+        opts.appendChild(el);
+      });
+    }
+
+    function responder(escolha, el){
+      if (!state.current || state.answered) return;
+      state.answered = true;
+      state.tries += 1;
+
+      const todas = Array.from(document.querySelectorAll(".option"));
+      todas.forEach(btn => {
+        const texto = btn.textContent.trim().replace(/^\d+/, "").trim();
+        if (texto === state.current.correctWord) {
+          btn.classList.add("correct");
+        }
+      });
+
+      if (escolha === state.current.correctWord) {
+        state.score += 1;
+        el.classList.add("correct");
+        revelar(true);
+      } else {
+        el.classList.add("wrong");
+        revelar(false);
+      }
+      atualizarPlacar();
+    }
+
+    function revelar(acertou){
+      const rev = document.getElementById("revelacao");
+      const emoji = acertou ? "✅" : "❌";
+      rev.textContent = `${emoji} Resposta correta: “${state.current.correctWord}”.`;
+    }
+
+    function atualizarPlacar(){
+      const p = document.getElementById("placar");
+      p.textContent = `Acertos: ${state.score} | Tentativas: ${state.tries}`;
+    }
+
+    function pularPergunta(){
+      if (!state.current) return;
+      state.tries += 1;
+      atualizarPlacar();
+      novaPergunta();
+    }
+
+    function reiniciar(){
+      state.score = 0;
+      state.tries = 0;
+      state.current = null;
+      state.answered = false;
+      atualizarPlacar();
+      renderPergunta();
+    }
+
+    // Acessibilidade de teclado
+    document.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        novaPergunta();
+      }
+      if (/^[1-9]$/.test(e.key)) {
+        const idx = parseInt(e.key, 10) - 1;
+        const buttons = document.querySelectorAll(".option");
+        if (buttons[idx]) buttons[idx].click();
+      }
+    });
+
+    // Botões
+    document.getElementById("novaPergunta").addEventListener("click", novaPergunta);
+    document.getElementById("pular").addEventListener("click", pularPergunta);
+    document.getElementById("reiniciar").addEventListener("click", reiniciar);
+
+    // Modal simples "Sobre"
+    const aboutBtn = document.getElementById("aboutBtn");
+    aboutBtn.addEventListener("click", () => {
+      alert("Quiz de Dicionário\n\n- Veja a definição e escolha a palavra correta.\n- Ajuste a dificuldade e o número de alternativas.\n- Use N para nova pergunta e números 1-9 para responder.\n\nDica: Você pode editar a lista de palavras no código (const DICIONARIO).");
+    });
+  </script>
+</body>
+</html>
